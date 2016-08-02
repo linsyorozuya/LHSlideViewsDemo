@@ -46,11 +46,6 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
     [self setupNavButtonByTitles];
 }
 
-- (void) setRootCollectionView:(UICollectionView *)pagesCollectionView
-{
-    _pagesCollectionView = pagesCollectionView;
-}
-
 - (void) setMenuButtonWidth:(CGFloat)menuButtonWidth
 {
     _menuButtonWidth = menuButtonWidth;
@@ -93,15 +88,13 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
 {
     // 滚动到点击的相应的视图位置
     [self scrollToPage:(btn.tag)];
+    [self.menuBarDelegate tapMenuButtonAtIndex:btn.tag];
     _selectedButtonIndex = btn.tag;
 }
 
 /** 滚动到点击的相应的视图位置 */
 - (void)scrollToPage:(NSInteger)tag
 {
-    // 滚动到点击的相应的视图位置
-    [_pagesCollectionView scrollRectToVisible:CGRectMake(_pagesCollectionView.frame.size.width * tag, _pagesCollectionView.frame.origin.y, _pagesCollectionView.frame.size.width, _pagesCollectionView.frame.size.height) animated:YES];
-    
     // 移动导航栏
     CGFloat menuOffsetX = self.frame.size.width * tag * (_menuButtonWidth / self.frame.size.width) - _menuButtonWidth;
     [self scrollRectToVisible:CGRectMake(menuOffsetX, 0, self.frame.size.width, self.frame.size.height) animated:YES];
@@ -130,24 +123,24 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
     
     // 恢复之前按钮的状态 （解决快速移动的时候 颜色和大小异常）
     [self resumeButtonNormalState];
-
+    
     // 根据位移计算当前选择的按钮下标
     int buttonIndex = contentOffsetX / self.frame.size.width;
-
+    
     // 根据位移计算出进度
     CGFloat percent = ( menuOffsetX - ( _menuButtonWidth * buttonIndex)) / _menuButtonWidth;
     
     // 变化按钮的文字大小和颜色
     _firstButton = _menuButtonArray[buttonIndex];
     [self updateButtonState:_firstButton percent:(1 - percent)];
-
+    
     // 最后一个 防止越界
     if(buttonIndex +1 == _menuButtonArray.count) return;
     
     // 变化按钮的文字大小和颜色
     _secondButton = _menuButtonArray[buttonIndex + 1];
     [self updateButtonState:_secondButton percent:percent];
-
+    
 }
 
 /** 变化按钮的文字大小和颜色 */

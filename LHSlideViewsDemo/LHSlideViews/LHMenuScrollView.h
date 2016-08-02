@@ -8,10 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol LHMenuScrollViewDelegate <NSObject>
+
+/** 回调点击菜单的标签的位置 */
+- (void) tapMenuButtonAtIndex:(NSInteger) index;
+
+@end
+
 @interface LHMenuScrollView : UIScrollView
 
 @property (nonatomic, strong) NSArray *titles;
-@property (nonatomic, strong) UICollectionView *pagesCollectionView;
+@property (nonatomic, weak) id <LHMenuScrollViewDelegate> menuBarDelegate;
+
+
 /** 顶部菜单按钮的宽度 */
 @property (nonatomic,assign) CGFloat menuButtonWidth;
 /** 随着滑动变化文字大小 */

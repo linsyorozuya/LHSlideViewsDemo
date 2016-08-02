@@ -12,14 +12,21 @@
 static const CGFloat kMenuBarHeight = 42.f;
 static const CGFloat kMenuButtonWidth = 60.f;
 
-@interface LHSlideViews() <UICollectionViewDelegate, UICollectionViewDataSource,UIScrollViewDelegate>
+@interface LHSlideViews() <UICollectionViewDelegate, UICollectionViewDataSource,UIScrollViewDelegate,LHMenuScrollViewDelegate>
 
 @property(nonatomic, strong) LHMenuScrollView *menuBarScrollView;
 @property(nonatomic, strong) UICollectionView *pagesCollectionView;
-/** 当前显示的 cell indexPath */
-@property (nonatomic,strong) NSIndexPath *visibleIndexPath;
 
+/** 当前显示的 cell indexPath */
+@property (nonatomic,assign) NSInteger visibleIndex;
+
+/** 过滤旋转屏幕时触发的滚动 */
 @property (nonatomic,assign) BOOL isRotate;
+/** 过滤跳转时，位于跳转的两个页面间未加载的页面，不让他们加载 */
+@property (nonatomic,assign) BOOL isTapScroll;
+
+/** 标记页面是否加载过 */
+@property (nonatomic,strong) NSMutableArray *displayedCellArray;
 
 @end
 
@@ -54,10 +61,11 @@ static const CGFloat kMenuButtonWidth = 60.f;
 
 - (void) setup
 {
+    _displayedCellArray = [NSMutableArray new];
     _menuBarHeight = kMenuBarHeight;
     _menuButtonWidth = kMenuButtonWidth;
     _menuBarBackgroudColor = [UIColor whiteColor];
-
+    
     [self addSubview:self.menuBarScrollView];
     [self addSubview:self.pagesCollectionView];
 }
@@ -79,8 +87,8 @@ static const CGFloat kMenuButtonWidth = 60.f;
         [flowLayout invalidateLayout];
         
         // 旋转后调整 cell 到正确的位置
-        [_pagesCollectionView scrollToItemAtIndexPath:_visibleIndexPath atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
-
+        [_pagesCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_visibleIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+        
         _isRotate = NO;
     }
 }
@@ -95,7 +103,6 @@ static const CGFloat kMenuButtonWidth = 60.f;
 /** 刷新数据 */
 - (void) reloadData
 {
-    self.visibleIndexPath = [NSIndexPath indexPathForItem:0 inSection:0];
     [self.pagesCollectionView reloadData];
 }
 
@@ -132,8 +139,12 @@ static const CGFloat kMenuButtonWidth = 60.f;
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"UICollectionViewCell" forIndexPath:indexPath];
-    cell.backgroundColor = [UIColor grayColor];
     [cell.contentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    
+    // 过滤跳转时，位于跳转的两个页面间未加载的页面，不让他们加载
+    if (_isTapScroll && [_displayedCellArray[indexPath.row] integerValue] == 0) {
+        return cell;
+    }
     
     // 添加视图
     UIViewController *pageView =  _pagesViews[indexPath.row];
@@ -141,6 +152,8 @@ static const CGFloat kMenuButtonWidth = 60.f;
     UIViewController *VC = [self getCurrentViewController];
     [VC addChildViewController:pageView];
     [cell.contentView addSubview:pageView.view];
+    
+    _isTapScroll = NO;
     
     return cell;
 }
@@ -156,8 +169,8 @@ static const CGFloat kMenuButtonWidth = 60.f;
         // 获取当前显示 cell 的 indexPath
         CGPoint point = [self convertPoint:_pagesCollectionView.center toView:_pagesCollectionView];
         NSIndexPath *indexPath = [_pagesCollectionView indexPathForItemAtPoint:point];
-        if (indexPath != _visibleIndexPath) {
-            self.visibleIndexPath = indexPath;
+        if (indexPath.row != _visibleIndex) {
+            self.visibleIndex = indexPath.row;
         }
     }
 }
@@ -170,6 +183,20 @@ static const CGFloat kMenuButtonWidth = 60.f;
         CGFloat offsetX = scrollView.contentOffset.x * (_menuButtonWidth / self.frame.size.width);
         [self.menuBarScrollView scrollRectToVisible:CGRectMake(offsetX, 0, self.menuBarScrollView.frame.size.width, self.menuBarScrollView.frame.size.height) animated:YES];
     }
+}
+
+#pragma mark - LHMenuScrollViewDelegate
+- (void)tapMenuButtonAtIndex:(NSInteger)index
+{
+    if ( labs(index - _visibleIndex) > 1) {
+        _isTapScroll = YES;
+    }
+    
+    // 标记为加载过
+    _displayedCellArray[index] = @1;
+    // 滚动到点击的相应的视图位置
+    [_pagesCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:index inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+    
 }
 
 #pragma mark - getter & setter
@@ -200,9 +227,9 @@ static const CGFloat kMenuButtonWidth = 60.f;
     if (!_menuBarScrollView) {
         _menuBarScrollView = [[LHMenuScrollView alloc] init];
         _menuBarScrollView.showsHorizontalScrollIndicator = NO;
-        _menuBarScrollView.pagesCollectionView = self.pagesCollectionView;
         _menuBarScrollView.backgroundColor = _menuBarBackgroudColor ? :[UIColor whiteColor];
         _menuBarScrollView.menuButtonWidth = _menuButtonWidth;
+        _menuBarScrollView.menuBarDelegate = self;
     }
     return _menuBarScrollView;
 }
@@ -216,6 +243,10 @@ static const CGFloat kMenuButtonWidth = 60.f;
 - (void) setPagesViews:(NSMutableArray *)pagesViews
 {
     _pagesViews = pagesViews;
+    for (int i= 0; i < _pagesViews.count; i++ ) {
+        
+        [_displayedCellArray addObject: (i == 0? @1: @0)];
+    }
 }
 
 - (void) setMenuBarHeight:(CGFloat)menuBarHeight
@@ -236,12 +267,12 @@ static const CGFloat kMenuButtonWidth = 60.f;
     [self layoutSubviews];
 }
 
-- (void) setVisibleIndexPath:(NSIndexPath *)visibleIndexPath
+- (void) setVisibleIndex:(NSInteger)visibleIndex
 {
-    _visibleIndexPath = visibleIndexPath;
+    _visibleIndex = visibleIndex;
     
     // 回调当前 Page
-    [self.delegate lHSlideViewsVisiblePageViewController:_pagesViews[_visibleIndexPath.row] index:_visibleIndexPath.row];
+    [self.delegate lHSlideViewsVisiblePageViewController:_pagesViews[_visibleIndex] index:_visibleIndex];
 }
 
 
