@@ -82,13 +82,12 @@ static const CGFloat kMenuButtonWidth = 60.f;
         _menuBarScrollView.menuButtonWidth = _menuButtonWidth;
         _pagesCollectionView.frame = CGRectMake(0, self.menuBarHeight, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame) - self.menuBarHeight);
         
-        // 旋转时更新 layout
-        UICollectionViewLayout *flowLayout = _pagesCollectionView.collectionViewLayout;
-        [flowLayout invalidateLayout];
-        
         // 旋转后调整 cell 到正确的位置
         [_pagesCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_visibleIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
         
+        // 旋转时更新 layout
+        UICollectionViewLayout *flowLayout = _pagesCollectionView.collectionViewLayout;
+        [flowLayout invalidateLayout];
         _isRotate = NO;
     }
 }
