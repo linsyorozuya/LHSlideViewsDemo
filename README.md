@@ -6,7 +6,7 @@ UICollectionView 实现简单带标签栏滚动控件
 
 #### 使用方法
 
-      //初始化数据 datasourse
+       //初始化数据 datasourse
        NSMutableArray *titleArray = [[NSMutableArray alloc]initWithObjects:@"全部",@"语文",@"数学",@"英语",@"物理",@"化学",@"生物",@"政治",@"历史",@"地理",@"学法", nil];
        NSMutableArray *pageViewsArray = [NSMutableArray new];
 
