@@ -22,7 +22,6 @@ UICollectionView 实现简单带标签栏滚动控件
        // 初始化 slideViews
        self.slideViews.titles = titleArray;
        self.slideViews.pagesViews = pageViewsArray;
-       [self.view addSubview:self.slideViews];
        [self.slideViews reloadData];
        
        
