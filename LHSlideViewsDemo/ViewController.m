@@ -37,7 +37,6 @@
     // 初始化 slideViews
     self.slideViews.titles = titleArray;
     self.slideViews.pagesViews = pageViewsArray;
-    [self.view addSubview:self.slideViews];
     [self.slideViews reloadData];
     
 }
