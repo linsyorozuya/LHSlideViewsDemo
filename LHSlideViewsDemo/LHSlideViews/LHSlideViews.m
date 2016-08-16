@@ -171,18 +171,20 @@ static const CGFloat kMenuButtonWidth = 60.f;
         if (indexPath.row != _visibleIndex) {
             self.visibleIndex = indexPath.row;
         }
+        
+        // 滚动顶部菜单
+        CGFloat offsetX = scrollView.contentOffset.x * (_menuButtonWidth / self.frame.size.width) - _menuButtonWidth;
+        [self.menuBarScrollView scrollRectToVisible:CGRectMake(offsetX, 0, self.menuBarScrollView.frame.size.width, self.menuBarScrollView.frame.size.height) animated:NO];
     }
 }
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-    if (!_isRotate) // 过滤旋转屏幕时触发的滚动
-    {
-        // 滚动顶部菜单
-        CGFloat offsetX = scrollView.contentOffset.x * (_menuButtonWidth / self.frame.size.width);
-        [self.menuBarScrollView scrollRectToVisible:CGRectMake(offsetX, 0, self.menuBarScrollView.frame.size.width, self.menuBarScrollView.frame.size.height) animated:YES];
-    }
-}
+//- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+//{
+//    if (!_isRotate) // 过滤旋转屏幕时触发的滚动
+//    {
+//
+//    }
+//}
 
 #pragma mark - LHMenuScrollViewDelegate
 - (void)tapMenuButtonAtIndex:(NSInteger)index

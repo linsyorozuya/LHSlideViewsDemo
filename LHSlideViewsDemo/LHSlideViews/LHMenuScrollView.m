@@ -88,8 +88,6 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
 {
     // 滚动到点击的相应的视图位置
     [self scrollToPage:(btn.tag)];
-    [self.menuBarDelegate tapMenuButtonAtIndex:btn.tag];
-    _selectedButtonIndex = btn.tag;
 }
 
 /** 滚动到点击的相应的视图位置 */
@@ -98,6 +96,8 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
     // 移动导航栏
     CGFloat menuOffsetX = self.frame.size.width * tag * (_menuButtonWidth / self.frame.size.width) - _menuButtonWidth;
     [self scrollRectToVisible:CGRectMake(menuOffsetX, 0, self.frame.size.width, self.frame.size.height) animated:YES];
+    [self.menuBarDelegate tapMenuButtonAtIndex:tag];
+
     _selectedButtonIndex = tag;
 }
 
