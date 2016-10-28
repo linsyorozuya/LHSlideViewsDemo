@@ -128,6 +128,7 @@
 				TargetAttributes = {
 					EC12E24E1D50429F0001E0DD = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = 5TCKKM3Y4X;
 					};
 				};
 			};
@@ -283,6 +284,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 5TCKKM3Y4X;
 				INFOPLIST_FILE = LHSlideViewsDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Lin.LHSlideViewsDemo;
@@ -294,6 +296,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 5TCKKM3Y4X;
 				INFOPLIST_FILE = LHSlideViewsDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Lin.LHSlideViewsDemo;
@@ -320,6 +323,7 @@
 				EC12E2681D50429F0001E0DD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

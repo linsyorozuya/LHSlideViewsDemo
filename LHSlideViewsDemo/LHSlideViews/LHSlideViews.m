@@ -66,11 +66,11 @@ static const CGFloat kMenuButtonWidth = 60.f;
     _menuButtonWidth = kMenuButtonWidth;
     _menuBarBackgroudColor = [UIColor whiteColor];
     
-    [self addSubview:self.menuBarScrollView];
     [self addSubview:self.pagesCollectionView];
+    [self addSubview:self.menuBarScrollView];
 }
 
-- (void)layoutSubviews
+- (void) layoutSubviews
 {
     [super layoutSubviews];
     // 过滤旋转屏幕时触发的滚动
@@ -80,16 +80,26 @@ static const CGFloat kMenuButtonWidth = 60.f;
         _menuBarScrollView.frame = CGRectMake(0, 0,  CGRectGetWidth(self.frame), self.menuBarHeight);
         _menuBarScrollView.backgroundColor = _menuBarBackgroudColor;
         _menuBarScrollView.menuButtonWidth = _menuButtonWidth;
-        _pagesCollectionView.frame = CGRectMake(0, self.menuBarHeight, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame) - self.menuBarHeight);
         
-        // 旋转后调整 cell 到正确的位置
-        [_pagesCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_visibleIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+        _pagesCollectionView.frame = CGRectMake(0, self.menuBarHeight, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame) - self.menuBarHeight);
         
         // 旋转时更新 layout
         UICollectionViewLayout *flowLayout = _pagesCollectionView.collectionViewLayout;
         [flowLayout invalidateLayout];
+        
+        if (_titles.count != 0 && _visibleIndex < _titles.count)
+        {
+            // 旋转后调整 cell 到正确的位置
+            [_pagesCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_visibleIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+        }
+        
         _isRotate = NO;
     }
+}
+
+-(void) viewDidLayoutSubviews
+{
+    
 }
 
 #pragma mark - action
@@ -103,6 +113,7 @@ static const CGFloat kMenuButtonWidth = 60.f;
 - (void) reloadData
 {
     [self.pagesCollectionView reloadData];
+    self.visibleIndex = _visibleIndex;
 }
 
 /** 获取当前View的控制器对象 */
@@ -148,8 +159,6 @@ static const CGFloat kMenuButtonWidth = 60.f;
     // 添加视图
     UIViewController *pageView =  _pagesViews[indexPath.row];
     pageView.view.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame),CGRectGetHeight(self.frame) - self.menuBarHeight);
-    UIViewController *VC = [self getCurrentViewController];
-    [VC addChildViewController:pageView];
     [cell.contentView addSubview:pageView.view];
     
     _isTapScroll = NO;
@@ -162,29 +171,30 @@ static const CGFloat kMenuButtonWidth = 60.f;
 {
     if (!_isRotate) // 过滤旋转屏幕时触发的滚动
     {
-        // 改变标题大小
-        [self.menuBarScrollView changeTitlesFontSizeByScrollViewOffsetX:scrollView.contentOffset.x];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 改变标题大小
+            [self.menuBarScrollView changeTitlesFontSizeByScrollViewOffsetX:scrollView.contentOffset.x];
+            
+            // 滚动顶部菜单
+            CGFloat offsetX = scrollView.contentOffset.x * (_menuButtonWidth / self.frame.size.width) - _menuButtonWidth;
+            [self.menuBarScrollView scrollRectToVisible:CGRectMake(offsetX, 0, self.menuBarScrollView.frame.size.width, self.menuBarScrollView.frame.size.height) animated:NO];
+        });
         
-        // 获取当前显示 cell 的 indexPath
-        CGPoint point = [self convertPoint:_pagesCollectionView.center toView:_pagesCollectionView];
-        NSIndexPath *indexPath = [_pagesCollectionView indexPathForItemAtPoint:point];
-        if (indexPath.row != _visibleIndex) {
-            self.visibleIndex = indexPath.row;
-        }
-        
-        // 滚动顶部菜单
-        CGFloat offsetX = scrollView.contentOffset.x * (_menuButtonWidth / self.frame.size.width) - _menuButtonWidth;
-        [self.menuBarScrollView scrollRectToVisible:CGRectMake(offsetX, 0, self.menuBarScrollView.frame.size.width, self.menuBarScrollView.frame.size.height) animated:NO];
     }
 }
 
-//- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-//{
-//    if (!_isRotate) // 过滤旋转屏幕时触发的滚动
-//    {
-//
-//    }
-//}
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    // 获取当前显示 cell 的 indexPath
+    CGPoint point = [self convertPoint:_pagesCollectionView.center toView:_pagesCollectionView];
+    NSIndexPath *indexPath = [_pagesCollectionView indexPathForItemAtPoint:point];
+    self.visibleIndex = indexPath.row;
+}
+
+-(void) scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+{
+    [self scrollViewDidEndDecelerating:scrollView];
+}
 
 #pragma mark - LHMenuScrollViewDelegate
 - (void)tapMenuButtonAtIndex:(NSInteger)index
@@ -197,7 +207,7 @@ static const CGFloat kMenuButtonWidth = 60.f;
     _displayedCellArray[index] = @1;
     // 滚动到点击的相应的视图位置
     [_pagesCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:index inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
-    
+    self.visibleIndex = index;
 }
 
 #pragma mark - getter & setter
@@ -216,6 +226,7 @@ static const CGFloat kMenuButtonWidth = 60.f;
         _pagesCollectionView.pagingEnabled = YES;
         _pagesCollectionView.backgroundColor = [UIColor clearColor];
         _pagesCollectionView.showsHorizontalScrollIndicator = NO;
+        
         //注册Cell，必须要有
         [_pagesCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"UICollectionViewCell"];
         
@@ -231,6 +242,7 @@ static const CGFloat kMenuButtonWidth = 60.f;
         _menuBarScrollView.backgroundColor = _menuBarBackgroudColor ? :[UIColor whiteColor];
         _menuBarScrollView.menuButtonWidth = _menuButtonWidth;
         _menuBarScrollView.menuBarDelegate = self;
+        
     }
     return _menuBarScrollView;
 }
@@ -273,7 +285,10 @@ static const CGFloat kMenuButtonWidth = 60.f;
     _visibleIndex = visibleIndex;
     
     // 回调当前 Page
-    [self.delegate lHSlideViewsVisiblePageViewController:_pagesViews[_visibleIndex] index:_visibleIndex];
+    if([self.delegate respondsToSelector:@selector(lHSlideViewsVisiblePageViewController:index:)])
+    {
+        [self.delegate lHSlideViewsVisiblePageViewController:_pagesViews[_visibleIndex] index:_visibleIndex];
+    }
 }
 
 

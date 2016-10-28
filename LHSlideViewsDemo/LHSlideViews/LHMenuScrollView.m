@@ -49,7 +49,7 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
 - (void) setMenuButtonWidth:(CGFloat)menuButtonWidth
 {
     _menuButtonWidth = menuButtonWidth;
-    _slideView.frame = CGRectMake( _menuButtonWidth / 4 , CGRectGetHeight(self.frame)-3,  _menuButtonWidth/2, 2);
+    _slideView.frame = CGRectMake( _menuButtonWidth / 4 , CGRectGetHeight(self.frame)-2,  _menuButtonWidth/2, 2);
 }
 
 /** 初始化标题 */
@@ -88,16 +88,17 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
 {
     // 滚动到点击的相应的视图位置
     [self scrollToPage:(btn.tag)];
+    _selectedButtonIndex = btn.tag;
 }
 
 /** 滚动到点击的相应的视图位置 */
 - (void)scrollToPage:(NSInteger)tag
 {
     // 移动导航栏
-    CGFloat menuOffsetX = self.frame.size.width * tag * (_menuButtonWidth / self.frame.size.width) - _menuButtonWidth;
+    CGFloat menuOffsetX = self.frame.size.width * tag * (_menuButtonWidth / self.frame.size.width) ;
     [self scrollRectToVisible:CGRectMake(menuOffsetX, 0, self.frame.size.width, self.frame.size.height) animated:YES];
     [self.menuBarDelegate tapMenuButtonAtIndex:tag];
-
+    
     _selectedButtonIndex = tag;
 }
 
@@ -105,7 +106,7 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
 -(void)initSlideView
 {
     _slideView = [UIView new];
-    _slideView.frame = CGRectMake( (_selectedButtonIndex + 1) * _menuButtonWidth / 4 , CGRectGetHeight(self.frame)-3,  _menuButtonWidth/2, 2);
+    _slideView.frame = CGRectMake( (_selectedButtonIndex + 1) * _menuButtonWidth / 4 , CGRectGetHeight(self.frame)-2,  _menuButtonWidth/2, 2);
     _slideView.backgroundColor = kScrollLineViewColor;
     [self addSubview:_slideView];
 }
@@ -116,7 +117,7 @@ static const CGFloat kMenuTitleSelectedFontSize = 17.f;         // 默认按钮�
     // 计算出 菜单滚动条 偏移的值
     CGFloat menuOffsetX = contentOffsetX * (_menuButtonWidth / self.frame.size.width);
     // 滑动横线
-    [self animationWithView:_slideView andOffsetX:menuOffsetX + _menuButtonWidth/4 OffsetY:CGRectGetHeight(self.frame)-3 animationTime:0.3];
+    [self animationWithView:_slideView andOffsetX:menuOffsetX + _menuButtonWidth/4 OffsetY:CGRectGetHeight(self.frame)-2 animationTime:0.3];
     
     // 滑动到第一个或者最后一个 不对 文字大小和颜色处理
     if (menuOffsetX < 0 || menuOffsetX > _menuButtonWidth *(_menuButtonArray.count -1)) return;
